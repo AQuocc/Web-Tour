@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title id="pageTitle">Manage Tours</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Manage Tours</h2>
+                <a th:href="@{/tours/admin/create}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Tour
+                </a>
+            </div>
+
+            <!-- Flash Messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Tour List Table -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Image</th>
+                                    <th>Name</th>
+                                    <th>Destination</th>
+                                    <th>Price</th>
+                                    <th>Discount</th>
+                                    <th>Start Date</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="tour : ${tours}">
+                                    <td th:text="${tour.id}">1</td>
+                                    <td>
+                                        <img th:if="${tour.imageUrl}" 
+                                             th:src="${tour.imageUrl}" 
+                                             class="img-thumbnail" 
+                                             style="height: 50px;" alt="Tour Image">
+                                        <img th:unless="${tour.imageUrl}" 
+                                             src="/images/default-tour.jpg" 
+                                             class="img-thumbnail" 
+                                             style="height: 50px;" alt="Default Tour Image">
+                                    </td>
+                                    <td th:text="${tour.name}">Tour Name</td>
+                                    <td th:text="${tour.destination}">Destination</td>
+                                    <td>
+                                        <span th:if="${tour.discount > 0}">
+                                            <del class="text-muted" th:text="${'$' + tour.price}">$999</del><br/>
+                                            <span class="text-danger" th:text="${'$' + (#numbers.formatDecimal(tour.price * (100 - tour.discount) / 100, 1, 2))}">$899</span>
+                                        </span>
+                                        <span th:unless="${tour.discount > 0}" th:text="${'$' + tour.price}">$999</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${tour.discount > 0}" class="badge bg-danger" th:text="${tour.discount + '%'}">10%</span>
+                                        <span th:unless="${tour.discount > 0}">-</span>
+                                    </td>
+                                    <td th:text="${#temporals.format(tour.startDate, 'dd MMM yyyy')}">Start Date</td>
+                                    <td th:text="${tour.duration}">7 days</td>
+                                    <td>
+                                        <span th:class="${'badge ' + (tour.available ? 'bg-success' : 'bg-danger')}"
+                                              th:text="${tour.available ? 'Available' : 'Not Available'}">
+                                            Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a th:href="@{/tours/{id}(id=${tour.id})}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a th:href="@{/tours/admin/edit/{id}(id=${tour.id})}" 
+                                               class="btn btn-sm btn-outline-warning" 
+                                               title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                    title="Delete"
+                                                    th:data-tour-id="${tour.id}"
+                                                    onclick="confirmDelete(this.getAttribute('data-tour-id'))">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Delete</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to delete this tour? This action cannot be undone.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form id="deleteForm" method="post" th:action="@{/tours/admin/delete/0}">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Script -->
+    <script th:inline="javascript">
+        function confirmDelete(tourId) {
+            const deleteForm = document.getElementById('deleteForm');
+            const contextPath = /*[[@{/}]]*/ '';
+            deleteForm.action = contextPath + 'tours/admin/delete/' + tourId;
+            
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+    </script>
+</body>
+</html>

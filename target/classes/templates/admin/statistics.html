@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Statistics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .stats-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-4">
+            <h2 class="mb-4 text-center">Dashboard Overview</h2>
+            
+            <div class="row mb-4">
+                <!-- Summary Cards -->
+                <div class="col-md-6 mb-4">
+                    <div class="stats-card h-100" style="background: linear-gradient(135deg, #6B8DD6 0%, #8E37D7 100%); color: white;">
+                        <div class="card-body text-center">
+                            <h4>Total Bookings</h4>
+                            <h2 class="display-4 mb-0" th:text="${stats.totalBookings}">0</h2>
+                            <p class="mt-2 mb-0">Confirmed Bookings</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="stats-card h-100" style="background: linear-gradient(135deg, #45B649 0%, #38EF7D 100%); color: white;">
+                        <div class="card-body text-center">
+                            <h4>Total Revenue</h4>
+                            <h2 class="display-4 mb-0">$<span th:text="${#numbers.formatDecimal(stats.totalRevenue, 0, 'COMMA', 2, 'POINT')}">0.00</span></h2>
+                            <p class="mt-2 mb-0">From All Tours</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="stats-card">
+                        <div class="card-body">
+                            <canvas id="bookingsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="stats-card">
+                        <div class="card-body">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Section -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <ul class="nav nav-tabs" id="detailsTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#bookingsTab">Tour Bookings</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#revenueTab">Monthly Revenue</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3">
+                        <div class="tab-pane fade show active" id="bookingsTab">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Tour Name</th>
+                                            <th>Number of Bookings</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="booking : ${stats.bookingsPerTour}">
+                                            <td th:text="${booking.key}">Tour Name</td>
+                                            <td th:text="${booking.value}">0</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="revenueTab">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Month</th>
+                                            <th>Revenue</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="revenue : ${stats.monthlyRevenue}">
+                                            <td th:text="${revenue.key}">Month</td>
+                                            <td>$<span th:text="${#numbers.formatDecimal(revenue.value, 0, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Initialization Script -->
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const bookingsData = /*[[${stats.bookingsPerTour}]]*/ {};
+            const monthlyRevenueData = /*[[${stats.monthlyRevenue}]]*/ {};
+
+            new Chart(document.getElementById('bookingsChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(bookingsData),
+                    datasets: [{
+                        label: 'Number of Bookings',
+                        data: Object.values(bookingsData),
+                        backgroundColor: 'rgba(107, 141, 214, 0.8)',
+                        borderColor: 'rgba(107, 141, 214, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Tour Bookings Comparison',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('revenueChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(monthlyRevenueData),
+                    datasets: [{
+                        label: 'Revenue',
+                        data: Object.values(monthlyRevenueData),
+                        backgroundColor: 'rgba(69, 182, 73, 0.8)',
+                        borderColor: 'rgba(69, 182, 73, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Monthly Revenue Distribution',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

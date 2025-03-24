@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title id="pageTitle" th:text="${tour.id == null ? 'Create Tour' : 'Edit Tour'}">Tour Form</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/tours/admin/list}">Manage Tours</a></li>
+                    <li class="breadcrumb-item active" th:text="${tour.id == null ? 'Create Tour' : 'Edit Tour'}">Action</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4" th:text="${tour.id == null ? 'Create New Tour' : 'Edit Tour'}">Tour Form</h3>
+
+                    <form th:action="${tour.id == null ? '/tours/admin/create' : '/tours/admin/edit/' + tour.id}"
+                          th:object="${tour}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Tour Name *</label>
+                                    <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">
+                                        Please enter a tour name.
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="destination" class="form-label">Destination *</label>
+                                    <input type="text" class="form-control" id="destination" th:field="*{destination}" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('destination')}" th:errors="*{destination}">
+                                        Please enter a destination.
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="duration" class="form-label">Duration *</label>
+                                    <input type="text" class="form-control" id="duration" th:field="*{duration}" 
+                                           placeholder="e.g., 7 days" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('duration')}" th:errors="*{duration}">
+                                        Please specify the duration.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Price ($) *</label>
+                                    <input type="number" class="form-control" id="price" th:field="*{price}"
+                                           step="0.01" min="0" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}" th:errors="*{price}">
+                                        Please enter a valid price.
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="discount" class="form-label">Discount (%)</label>
+                                    <input type="number" class="form-control" id="discount" th:field="*{discount}"
+                                           min="0" max="100" value="0">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('discount')}" th:errors="*{discount}">
+                                        Please enter a valid discount (0-100).
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="maxParticipants" class="form-label">Maximum Participants *</label>
+                                    <input type="number" class="form-control" id="maxParticipants" 
+                                           th:field="*{maxParticipants}" min="1" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('maxParticipants')}" 
+                                         th:errors="*{maxParticipants}">
+                                        Please specify the maximum number of participants.
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="available" class="form-label">Availability</label>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="available" th:field="*{available}">
+                                        <label class="form-check-label" for="available">Tour is available for booking</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dates -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="startDate" class="form-label">Start Date *</label>
+                                    <input type="date" class="form-control" id="startDate" th:field="*{startDate}" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('startDate')}" 
+                                         th:errors="*{startDate}">
+                                        Please select a start date.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="endDate" class="form-label">End Date *</label>
+                                    <input type="date" class="form-control" id="endDate" th:field="*{endDate}" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('endDate')}" 
+                                         th:errors="*{endDate}">
+                                        Please select an end date.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" th:field="*{description}" 
+                                    rows="5" required></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}" 
+                                 th:errors="*{description}">
+                                Please provide a description.
+                            </div>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="mb-4">
+                            <label for="image" class="form-label">Tour Image</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <small class="form-text text-muted">
+                                Upload a new image or leave empty to keep the existing one.
+                            </small>
+                        </div>
+
+                        <!-- Form Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a th:href="@{/tours/admin/list}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <span th:text="${tour.id == null ? 'Create Tour' : 'Update Tour'}">Submit</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Validation Script -->
+    <script>
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+
+            // Date validation
+            document.getElementById('endDate').addEventListener('change', function() {
+                var startDate = new Date(document.getElementById('startDate').value);
+                var endDate = new Date(this.value);
+                
+                if (endDate < startDate) {
+                    this.setCustomValidity('End date must be after start date');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+        })()
+    </script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/base}">
+<head>
+    <title id="pageTitle">Booking Details</title>
+</head>
+<body>
+    <div layout:fragment="content" class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
+                <li sec:authorize="hasRole('ADMIN')" class="breadcrumb-item">
+                    <a th:href="@{/bookings/admin/all}">Manage Bookings</a>
+                </li>
+                <li sec:authorize="hasRole('USER')" class="breadcrumb-item">
+                    <a th:href="@{/bookings/my-bookings}">My Bookings</a>
+                </li>
+                <li class="breadcrumb-item active">Booking #<span th:text="${booking.id}"></span></li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        Booking Details #<span th:text="${booking.id}"></span>
+                    </h3>
+                    <span th:class="${'badge ' + 
+                        (booking.status == 'PENDING' ? 'bg-warning' : 
+                        (booking.status == 'CONFIRMED' ? 'bg-success' : 'bg-danger'))}"
+                        th:text="${booking.status}">
+                        Status
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Tour Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Tour Information</h5>
+                        <div class="info-group">
+                            <p><strong>Tour Name:</strong> <span th:text="${booking.tour.name}">Tour Name</span></p>
+                            <p><strong>Destination:</strong> <span th:text="${booking.tour.destination}">Destination</span></p>
+                            <p><strong>Duration:</strong> <span th:text="${booking.tour.duration}">Duration</span></p>
+                            <p><strong>Start Date:</strong> 
+                                <span th:text="${#temporals.format(booking.tour.startDate, 'dd MMM yyyy')}">Start Date</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Booking Information</h5>
+                        <div class="info-group">
+                            <p><strong>Booking Date:</strong> 
+                                <span th:text="${#temporals.format(booking.bookingDate, 'dd MMM yyyy HH:mm')}">Booking Date</span>
+                            </p>
+                            <p><strong>Number of Participants:</strong> <span th:text="${booking.numberOfParticipants}">2</span></p>
+                            <p><strong>Price per Person:</strong>
+                                <span th:if="${booking.tour.discount > 0}">
+                                    <del class="text-muted" th:text="${'$' + booking.tour.price}">$299.99</del>
+                                    <span class="badge bg-danger" th:text="${booking.tour.discount + '% OFF'}">10% OFF</span>
+                                    <span class="text-danger" th:text="${'$' + #numbers.formatDecimal(booking.tour.price * (100 - booking.tour.discount) / 100, 1, 2)}">$269.99</span>
+                                </span>
+                                <span th:unless="${booking.tour.discount > 0}" th:text="${'$' + booking.tour.price}">$299.99</span>
+                            </p>
+                            <p><strong>Total Price:</strong> <span class="text-success fw-bold" th:text="${'$' + booking.totalPrice}">$599.98</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5>Customer Information</h5>
+                        <div class="info-group">
+                            <p><strong>Full Name:</strong> <span th:text="${booking.user.fullName}">John Doe</span></p>
+                            <p><strong>Email:</strong> <span th:text="${booking.user.email}">john@example.com</span></p>
+                            <p th:if="${booking.user.phoneNumber}">
+                                <strong>Phone:</strong> <span th:text="${booking.user.phoneNumber}">+1234567890</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Special Requirements -->
+                <div class="row mb-4" th:if="${booking.specialRequirements}">
+                    <div class="col-12">
+                        <h5>Special Requirements</h5>
+                        <div class="info-group">
+                            <p th:text="${booking.specialRequirements}">Special requirements text</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <!-- Admin Actions -->
+                                <div sec:authorize="hasRole('ADMIN')" th:if="${booking.status == 'PENDING'}" class="btn-group">
+                                    <form th:action="@{/bookings/admin/{id}/status(id=${booking.id})}" method="post" style="display: inline;">
+                                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                                        <input type="hidden" name="status" value="CONFIRMED"/>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-check"></i> Confirm Booking
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/bookings/admin/{id}/status(id=${booking.id})}" method="post" style="display: inline;">
+                                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                                        <input type="hidden" name="status" value="CANCELLED"/>
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-times"></i> Cancel Booking
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- User Actions -->
+                                <div sec:authorize="hasRole('USER')" th:if="${booking.status == 'PENDING'}">
+                                    <form th:action="@{/bookings/{id}/cancel(id=${booking.id})}" method="post" 
+                                          onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-times"></i> Cancel Booking
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Back Button -->
+                            <div>
+                                <a sec:authorize="hasRole('ADMIN')" th:href="@{/bookings/admin/all}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to Bookings List
+                                </a>
+                                <a sec:authorize="hasRole('USER')" th:href="@{/bookings/my-bookings}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to My Bookings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .info-group {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        .info-group p {
+            margin-bottom: 0.5rem;
+        }
+        .info-group p:last-child {
+            margin-bottom: 0;
+        }
+        .badge {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+        .btn-group .btn {
+            margin-right: 0.5rem;
+        }
+    </style>
+</body>
+</html>

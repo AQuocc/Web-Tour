@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title id="pageTitle">Book Tour</title>
+</head>
+<body>
+    <div layout:fragment="content" class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">Book Tour</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tour Summary -->
+                        <div class="tour-summary mb-4">
+                            <h4 th:text="${tour.name}">Tour Name</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><i class="fas fa-map-marker-alt"></i> <strong>Destination:</strong> 
+                                        <span th:text="${tour.destination}">Destination</span></p>
+                                    <p><i class="fas fa-calendar"></i> <strong>Start Date:</strong> 
+                                        <span th:text="${#temporals.format(tour.startDate, 'dd MMM yyyy')}">Start Date</span></p>
+                                    <p><i class="fas fa-clock"></i> <strong>Duration:</strong> 
+                                        <span th:text="${tour.duration}">Duration</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><i class="fas fa-users"></i> <strong>Available Spots:</strong> 
+                                        <span th:text="${tour.maxParticipants}">Spots</span></p>
+                                    <p><i class="fas fa-tag"></i> <strong>Price per Person:</strong> 
+                                        <span class="price" th:text="${'$' + tour.price}">Price</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Booking Form -->
+                        <form th:action="@{/bookings/create/{id}(id=${tour.id})}" method="post" class="needs-validation" novalidate>
+                            <div class="mb-3">
+                                <label for="numberOfParticipants" class="form-label">Number of Participants *</label>
+                                <input type="number" class="form-control" id="numberOfParticipants" 
+                                       name="numberOfParticipants" required min="1" th:max="${tour.maxParticipants}"
+                                       oninput="calculateTotal()">
+                                <div class="invalid-feedback">
+                                    Please enter the number of participants (minimum 1, maximum <span th:text="${tour.maxParticipants}"></span>).
+                                </div>
+                            </div>
+
+                            <!-- Total Price Calculation -->
+                            <div class="total-price-section mb-4">
+                                <h5>Price Summary</h5>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Price per Person:</span>
+                                            <span th:text="${'$' + tour.price}">$0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Number of Participants:</span>
+                                            <span id="participantsDisplay">0</span>
+                                        </div>
+                                        <hr>
+                                        <div class="d-flex justify-content-between">
+                                            <strong>Total Price:</strong>
+                                            <strong id="totalPrice">$0.00</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">Confirm Booking</button>
+                                <a th:href="@{/tours/{id}(id=${tour.id})}" class="btn btn-outline-secondary">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for price calculation -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const pricePerPerson = /*[[${tour.price}]]*/ 0;
+        
+        function calculateTotal() {
+            const participants = document.getElementById('numberOfParticipants').value || 0;
+            const total = participants * pricePerPerson;
+            
+            document.getElementById('participantsDisplay').textContent = participants;
+            document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+        }
+
+        // Form validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+        /*]]>*/
+    </script>
+
+    <style>
+        .price {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .tour-summary i {
+            width: 20px;
+            color: #0056b3;
+        }
+    </style>
+</body>
+</html>

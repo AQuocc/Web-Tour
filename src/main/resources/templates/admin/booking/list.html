@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title id="pageTitle">Manage Bookings</title>
+</head>
+<body>
+    <div layout:fragment="content" class="container">
+        <h2 class="mb-4">
+            <i class="fas fa-calendar-check"></i> Manage Bookings
+        </h2>
+
+        <!-- Filter Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/bookings/admin/all}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">Filter by Status</label>
+                        <select class="form-select" id="status" name="status" th:value="${param.status}">
+                            <option value="">All Status</option>
+                            <option value="PENDING" th:selected="${param.status == 'PENDING'}">Pending</option>
+                            <option value="CONFIRMED" th:selected="${param.status == 'CONFIRMED'}">Confirmed</option>
+                            <option value="CANCELLED" th:selected="${param.status == 'CANCELLED'}">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Bookings Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tour</th>
+                                <th>Customer</th>
+                                <th>Participants</th>
+                                <th>Total Price</th>
+                                <th>Booking Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="booking : ${bookings}">
+                                <td th:text="${booking.id}">1</td>
+                                <td th:text="${booking.tour.name}">Tour Name</td>
+                                <td th:text="${booking.user.fullName}">Customer Name</td>
+                                <td th:text="${booking.numberOfParticipants}">2</td>
+                                <td th:text="${'$' + booking.totalPrice}">$599.98</td>
+                                <td th:text="${#temporals.format(booking.bookingDate, 'dd-MM-yyyy HH:mm')}">01-01-2024</td>
+                                <td>
+                                    <span th:class="${'badge ' + 
+                                        (booking.status == 'PENDING' ? 'bg-warning text-dark' : 
+                                        (booking.status == 'CONFIRMED' ? 'bg-success' : 'bg-danger'))}"
+                                        th:text="${booking.status}">
+                                        Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <!-- Confirm Button -->
+                                        <form th:if="${booking.status == 'PENDING'}"
+                                              th:action="@{/bookings/admin/{id}/status(id=${booking.id})}"
+                                              method="post" class="d-inline-block me-1">
+                                           <input type="hidden" name="id" th:value="${booking.id}" />
+                                           <input type="hidden" name="status" value="CONFIRMED"/>
+                                           <button type="submit" class="btn btn-success btn-sm"
+                                                   title="Confirm Booking" onclick="return confirm('Are you sure you want to confirm this booking?')">
+                                               <i class="fas fa-check"></i> Confirm
+                                           </button>
+                                       </form>
+                                       
+                                       <!-- Cancel Button -->
+                                       <form th:if="${booking.status == 'PENDING'}"
+                                             th:action="@{/bookings/admin/{id}/status(id=${booking.id})}"
+                                             method="post" class="d-inline-block me-1">
+                                           <input type="hidden" name="id" th:value="${booking.id}" />
+                                           <input type="hidden" name="status" value="CANCELLED"/>
+                                           <button type="submit" class="btn btn-danger btn-sm"
+                                                   title="Cancel Booking" onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                               <i class="fas fa-times"></i> Cancel
+                                           </button>
+                                       </form>
+                                        
+                                        <!-- View Button -->
+                                        <a th:href="@{/bookings/{id}(id=${booking.id})}"
+                                           class="btn btn-info btn-sm"
+                                           title="View Booking Details">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(bookings)}">
+                                <td colspan="8" class="text-center">No bookings found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    /* Table styles */
+    .table {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    .table thead {
+        background-color: #f8f9fa;
+    }
+    .table th {
+        border-top: none;
+        font-weight: 600;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    
+    /* Badge styles */
+    .badge {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        border-radius: 6px;
+    }
+    
+    /* Button styles */
+    .btn-group .btn {
+        margin-right: 5px;
+        border-radius: 6px;
+    }
+    
+    /* Card styles */
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    /* Form styles */
+    .form-select {
+        border-radius: 6px;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+
+    /* Alert styles */
+    .alert {
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+    }
+    </style>
+</body>
+</html>
