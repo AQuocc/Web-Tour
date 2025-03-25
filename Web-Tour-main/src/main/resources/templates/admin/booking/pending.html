@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title id="pageTitle">Pending Bookings</title>
+</head>
+<body>
+    <div layout:fragment="content" class="container">
+        <h2 class="mb-4">
+            <i class="fas fa-clock"></i> Pending Bookings
+        </h2>
+
+        <!-- Bookings Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tour</th>
+                                <th>Customer</th>
+                                <th>Participants</th>
+                                <th>Total Price</th>
+                                <th>Booking Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="booking : ${bookings}">
+                                <td th:text="${booking.id}">1</td>
+                                <td th:text="${booking.tour.name}">Tour Name</td>
+                                <td th:text="${booking.user.fullName}">Customer Name</td>
+                                <td th:text="${booking.numberOfParticipants}">2</td>
+                                <td th:text="${'$' + booking.totalPrice}">$599.98</td>
+                                <td th:text="${#temporals.format(booking.bookingDate, 'dd-MM-yyyy HH:mm')}">01-01-2024</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-success btn-sm"
+                                                th:onclick="'updateStatus(' + ${booking.id} + ', \'CONFIRMED\')'">
+                                            <i class="fas fa-check"></i> Confirm
+                                        </button>
+                                        <button class="btn btn-danger btn-sm"
+                                                th:onclick="'updateStatus(' + ${booking.id} + ', \'CANCELLED\')'">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                        <a th:href="@{/bookings/{id}(id=${booking.id})}" 
+                                           class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(bookings)}">
+                                <td colspan="7" class="text-center">No pending bookings found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a th:href="@{/bookings/admin/all}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to All Bookings
+            </a>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+    function updateStatus(bookingId, status) {
+        if (confirm('Are you sure you want to update this booking to ' + status + '?')) {
+            fetch('/bookings/admin/' + bookingId + '/status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'status=' + status
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error updating booking status');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating booking status');
+            });
+        }
+    }
+    </script>
+
+    <style>
+    .btn-group .btn {
+        margin-right: 5px;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    </style>
+</body>
+</html>

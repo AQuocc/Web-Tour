@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title id="pageTitle">My Bookings</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container">
+            <h2 class="mb-4">My Bookings</h2>
+
+            <!-- No Bookings Message -->
+            <div th:if="${#lists.isEmpty(bookings)}" class="alert alert-info">
+                <p>You don't have any bookings yet.</p>
+                <a th:href="@{/tours}" class="btn btn-primary">Browse Tours</a>
+            </div>
+
+            <!-- Bookings List -->
+            <div th:if="${not #lists.isEmpty(bookings)}" class="row">
+                <div class="col-12">
+                    <div class="card mb-4" th:each="booking : ${bookings}">
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Tour Image -->
+                                <div class="col-md-3">
+                                    <img th:if="${booking.tour.imageUrl}" 
+                                         th:src="${booking.tour.imageUrl}" 
+                                         class="img-fluid rounded" alt="Tour Image">
+                                    <img th:unless="${booking.tour.imageUrl}" 
+                                         src="/images/default-tour.jpg" 
+                                         class="img-fluid rounded" alt="Default Tour Image">
+                                </div>
+
+                                <!-- Booking Details -->
+                                <div class="col-md-6">
+                                    <h5 class="card-title" th:text="${booking.tour.name}">Tour Name</h5>
+                                    <div class="booking-details">
+                                        <p>
+                                            <strong>Booking Reference:</strong>
+                                            <span th:text="${'#' + booking.id}">Booking ID</span>
+                                        </p>
+                                        <p>
+                                            <strong>Booking Date:</strong>
+                                            <span th:text="${#temporals.format(booking.bookingDate, 'dd MMM yyyy HH:mm')}">
+                                                Booking Date
+                                            </span>
+                                        </p>
+                                        <p>
+                                            <strong>Tour Date:</strong>
+                                            <span th:text="${#temporals.format(booking.tour.startDate, 'dd MMM yyyy')}">
+                                                Tour Date
+                                            </span>
+                                        </p>
+                                        <p>
+                                            <strong>Number of Participants:</strong>
+                                            <span th:text="${booking.numberOfParticipants}">Participants</span>
+                                        </p>
+                                        <p>
+                                            <strong>Total Price:</strong>
+                                            <span class="price" th:text="${'$' + booking.totalPrice}">Price</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Status and Actions -->
+                                <div class="col-md-3">
+                                    <div class="text-end">
+                                        <span th:class="${'badge ' + 
+                                            (booking.status == 'CONFIRMED' ? 'bg-success' : 
+                                             booking.status == 'PENDING' ? 'bg-warning' : 
+                                             booking.status == 'CANCELLED' ? 'bg-danger' : 'bg-secondary')}"
+                                              th:text="${booking.status}">
+                                            Status
+                                        </span>
+                                    </div>
+                                    <div class="mt-3 d-grid gap-2">
+                                        <a th:href="@{/bookings/{id}(id=${booking.id})}" 
+                                           class="btn btn-outline-primary">View Details</a>
+                                        
+                                        <!-- Rate Button (show only for confirmed bookings that haven't been rated) -->
+                                        <a th:if="${booking.canRate}" 
+                                           th:href="@{/bookings/{id}/rate(id=${booking.id})}"
+                                           class="btn btn-success">Rate Tour</a>
+                                        
+                                        <!-- Cancel Button (show only for PENDING or CONFIRMED bookings) -->
+                                        <form th:if="${booking.status != 'CANCELLED'}" 
+                                              th:action="@{/bookings/{id}/cancel(id=${booking.id})}" 
+                                              method="post"
+                                              onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                            <button type="submit" class="btn btn-danger w-100">Cancel Booking</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .price {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .booking-details p {
+            margin-bottom: 0.5rem;
+        }
+        .badge {
+            font-size: 0.9em;
+            padding: 0.5em 1em;
+        }
+    </style>
+</body>
+</html>
