@@ -12,6 +12,7 @@ A Java Spring Boot web application for managing travel tour bookings. The applic
 - Book tours
 - Manage personal bookings
 - View booking history
+- Rating tours
 
 ### Admin Features
 - Tour management (Create, Read, Update, Delete)
@@ -19,6 +20,7 @@ A Java Spring Boot web application for managing travel tour bookings. The applic
 - View all bookings
 - Approve/reject booking requests
 - User management
+- View Statics
 
 ## Technology Stack
 
@@ -57,7 +59,7 @@ spring.datasource.password=your_password
    ```bash
    mvn spring-boot:run
    ```
-5. Access the application at `http://localhost:8080`
+5. Access the application at `http://localhost:3000`
 
 ### Default Admin Account
 The application creates a default admin account on first run:
