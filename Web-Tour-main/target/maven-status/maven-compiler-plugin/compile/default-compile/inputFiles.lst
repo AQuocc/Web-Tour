@@ -9,11 +9,14 @@ C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\model
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\security\CustomUserDetailsService.java
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\repository\UserRepository.java
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\controller\BookingController.java
+C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\model\Rating.java
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\controller\AuthController.java
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\service\StatisticsService.java
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\service\TourService.java
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\model\Tour.java
+C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\service\RatingService.java
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\controller\HomeController.java
+C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\repository\RatingRepository.java
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\config\DataInitializer.java
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\repository\BookingRepository.java
 C:\Users\Dell\Desktop\Web-Tour-main\Web-Tour-main\src\main\java\com\travel\controller\ContactController.java
