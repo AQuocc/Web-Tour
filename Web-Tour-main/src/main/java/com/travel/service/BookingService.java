@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
-//import java.util.stream.Collectors;
 
 @Service
 public class BookingService {
@@ -44,24 +44,47 @@ public class BookingService {
         booking.setUser(user);
         booking.setTour(tour);
         booking.setNumberOfParticipants(numberOfParticipants);
+
         // Calculate price with discount
-        BigDecimal priceAfterDiscount = tour.getDiscount() > 0
-            ? tour.getPrice().multiply(BigDecimal.valueOf(100 - tour.getDiscount())).divide(BigDecimal.valueOf(100))
-            : tour.getPrice();
-        booking.setTotalPrice(priceAfterDiscount.multiply(BigDecimal.valueOf(numberOfParticipants)));
+        BigDecimal basePrice = tour.getPrice();
+        Integer discount = tour.getDiscount();
+        int discountValue = (discount != null) ? discount.intValue() : 0;
+
+        // Calculate total price with safe discount handling
+        BigDecimal totalPrice = basePrice;
+        if (discountValue > 0) {
+            BigDecimal discountMultiplier = BigDecimal.ONE.subtract(
+                BigDecimal.valueOf(discountValue).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
+            );
+            totalPrice = basePrice.multiply(discountMultiplier);
+        }
+
+        // Apply number of participants and set scale
+        totalPrice = totalPrice.multiply(BigDecimal.valueOf(numberOfParticipants))
+            .setScale(2, RoundingMode.HALF_UP);
+        booking.setTotalPrice(totalPrice);
         booking.setBookingDate(LocalDateTime.now());
         booking.setStatus("PENDING");
 
         return bookingRepository.save(booking);
     }
 
+    @Transactional(readOnly = true)
     public Booking getBookingById(Long id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
     }
 
+    @Transactional(readOnly = true)
     public List<Booking> getUserBookings(User user) {
-        return bookingRepository.findByUser(user);
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+        try {
+            return bookingRepository.findByUserWithTour(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching user bookings: " + e.getMessage());
+        }
     }
 
     public List<Booking> getAllBookings() {

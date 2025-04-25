@@ -18,7 +18,7 @@ public class Booking {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tour_id", nullable = false)
     private Tour tour;
 
@@ -38,4 +38,17 @@ public class Booking {
 
     @Transient
     private boolean canRate;
+
+    // Explicitly add getters for ID and Status
+    public Long getId() {
+        return id;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setCanRate(boolean canRate) {
+        this.canRate = canRate;
+    }
 }

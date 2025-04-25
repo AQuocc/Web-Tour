@@ -8,7 +8,8 @@ import java.util.List;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    List<Booking> findByUser(User user);
+    @org.springframework.data.jpa.repository.Query("SELECT b FROM Booking b JOIN FETCH b.tour WHERE b.user = :user")
+    List<Booking> findByUserWithTour(User user);
     List<Booking> findByStatus(String status);
     List<Booking> findByUserAndStatus(User user, String status);
     boolean existsByTourIdAndUserAndStatus(Long tourId, User user, String status);

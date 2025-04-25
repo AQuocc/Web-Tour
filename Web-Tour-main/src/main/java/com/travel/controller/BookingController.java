@@ -16,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.travel.model.Tour;
 import java.util.List;
 
 @Controller
@@ -103,15 +104,72 @@ public class BookingController {
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/my-bookings")
-    public String myBookings(Authentication authentication, Model model) {
-        User user = userService.findByUsername(authentication.getName());
-        List<Booking> bookings = bookingService.getUserBookings(user);
-        for (Booking booking : bookings) {
-            booking.setCanRate(!ratingService.hasUserRatedBooking(booking.getId()) && 
-                             "CONFIRMED".equals(booking.getStatus()));
+    public String myBookings(Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            System.out.println("DEBUG: Accessing /my-bookings endpoint");
+            
+            // Get user
+            String username = authentication.getName();
+            System.out.println("DEBUG: Getting user for username: " + username);
+            User user = userService.findByUsername(username);
+            
+            // Get bookings
+            System.out.println("DEBUG: Getting bookings for user");
+            List<Booking> bookings = bookingService.getUserBookings(user);
+            System.out.println("DEBUG: Found " + (bookings != null ? bookings.size() : 0) + " bookings");
+            
+            // Initialize empty list if null
+            if (bookings == null) {
+                bookings = List.of();
+            }
+
+            // Process each booking
+            if (!bookings.isEmpty()) {
+                for (Booking booking : bookings) {
+                    try {
+                        System.out.println("DEBUG: Processing booking ID: " + booking.getId());
+                        Tour tour = booking.getTour();
+                        if (tour != null) {
+                            System.out.println("DEBUG: Tour details found - " +
+                                "ID: " + tour.getId() +
+                                ", Name: '" + tour.getName() + "'" +
+                                ", Price: " + tour.getPrice() +
+                                ", Available: " + tour.isAvailable());
+                        } else {
+                            System.err.println("WARNING: Tour is null for booking ID: " + booking.getId());
+                        }
+                        
+                        boolean canRate = !ratingService.hasUserRatedBooking(booking.getId()) &&
+                                       "CONFIRMED".equals(booking.getStatus());
+                        booking.setCanRate(canRate);
+                    } catch (Exception e) {
+                        System.err.println("Error processing booking " + booking.getId() + ": " + e.getMessage());
+                        e.printStackTrace();
+                        booking.setCanRate(false);
+                    }
+                }
+            } else {
+                System.out.println("DEBUG: No bookings found for user");
+            }
+
+            // Set model attributes
+            model.addAttribute("bookings", bookings);
+            System.out.println("DEBUG: Returning view: booking/my-bookings");
+            return "booking/my-bookings";
+            
+        } catch (Exception e) {
+            String errorMsg = "Could not load your bookings: ";
+            if (e.getMessage() != null && !e.getMessage().isEmpty()) {
+                System.err.println("ERROR in myBookings: " + e.getMessage());
+                errorMsg += e.getMessage();
+            } else {
+                System.err.println("ERROR in myBookings: Unknown error");
+                errorMsg += "An unexpected error occurred. Please try again later.";
+            }
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", errorMsg);
+            return "redirect:/tours";
         }
-        model.addAttribute("bookings", bookings);
-        return "booking/my-bookings";
     }
 
     @PreAuthorize("hasRole('USER')")

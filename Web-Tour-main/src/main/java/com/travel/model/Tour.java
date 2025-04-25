@@ -47,4 +47,11 @@ public class Tour {
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL)
     private Set<Rating> ratings;
+
+    // Safe getter for discount that never returns null
+    public Integer getDiscount() {
+        return discount != null ? discount : 0;
+    }
+
+    
 }

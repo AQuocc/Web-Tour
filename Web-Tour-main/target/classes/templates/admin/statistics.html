@@ -4,7 +4,8 @@
       layout:decorate="~{layout/base}">
 <head>
     <title>Statistics Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Load required libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
     <style>
         .stats-card {
             border: none;
@@ -46,6 +47,7 @@
                 <div class="col-md-6 mb-4">
                     <div class="stats-card">
                         <div class="card-body">
+                            <div id="bookingsChartError" class="alert alert-danger d-none"></div>
                             <canvas id="bookingsChart"></canvas>
                         </div>
                     </div>
@@ -54,6 +56,7 @@
                 <div class="col-md-6 mb-4">
                     <div class="stats-card">
                         <div class="card-body">
+                            <div id="revenueChartError" class="alert alert-danger d-none"></div>
                             <canvas id="revenueChart"></canvas>
                         </div>
                     </div>
@@ -117,86 +120,183 @@
     </div>
 
     <!-- Charts Initialization Script -->
+    <!-- Debug Section -->
+    <div class="mb-3">
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('debug').classList.toggle('d-none')">
+            Toggle Debug Data
+        </button>
+        <div id="debug" class="d-none mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <h6>Raw Statistics Data:</h6>
+                    <pre class="mb-0" th:text="${#objects.nullSafe(stats, '{}')}"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script th:inline="javascript">
+        // Parse data from Thymeleaf with proper JSON conversion
+        const bookingsDataRaw = JSON.parse(/*[[${#strings.replace(#objects.nullSafe(#objects.toString(stats.bookingsPerTour), '{}'), '=', ':')}}]]*/ '{}');
+        const revenueDataRaw = JSON.parse(/*[[${#strings.replace(#objects.nullSafe(#objects.toString(stats.monthlyRevenue), '{}'), '=', ':')}}]]*/ '{}');
+        
         document.addEventListener('DOMContentLoaded', function() {
-            const bookingsData = /*[[${stats.bookingsPerTour}]]*/ {};
-            const monthlyRevenueData = /*[[${stats.monthlyRevenue}]]*/ {};
+            try {
+                console.log('Raw Bookings Data:', bookingsDataRaw);
+                console.log('Raw Revenue Data:', revenueDataRaw);
 
-            new Chart(document.getElementById('bookingsChart'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(bookingsData),
-                    datasets: [{
-                        label: 'Number of Bookings',
-                        data: Object.values(bookingsData),
-                        backgroundColor: 'rgba(107, 141, 214, 0.8)',
-                        borderColor: 'rgba(107, 141, 214, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: true,
-                            text: 'Tour Bookings Comparison',
-                            font: {
-                                size: 16
-                            }
+                // Ensure data is valid and convert to proper format for Chart.js
+                const bookingsData = {};
+                const monthlyRevenueData = {};
+
+                try {
+                    Object.entries(bookingsDataRaw).forEach(([key, value]) => {
+                        const numValue = parseInt(value, 10);
+                        if (!isNaN(numValue)) {
+                            bookingsData[key] = numValue;
                         }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
+                    });
+
+                    Object.entries(revenueDataRaw).forEach(([key, value]) => {
+                        const numValue = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]+/g, '')) : parseFloat(value);
+                        if (!isNaN(numValue)) {
+                            monthlyRevenueData[key] = numValue;
                         }
-                    }
+                    });
+                } catch (e) {
+                    console.error('Error converting data:', e);
                 }
-            });
 
-            new Chart(document.getElementById('revenueChart'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(monthlyRevenueData),
-                    datasets: [{
-                        label: 'Revenue',
-                        data: Object.values(monthlyRevenueData),
-                        backgroundColor: 'rgba(69, 182, 73, 0.8)',
-                        borderColor: 'rgba(69, 182, 73, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
+                // Debug logging
+                console.group('Chart Data Processing');
+                console.log('1. Raw Data:', { bookingsDataRaw, revenueDataRaw });
+                console.log('2. Converted Data:', { bookingsData, monthlyRevenueData });
+                console.log('3. Bookings Data Keys:', Object.keys(bookingsData));
+                console.log('4. Bookings Data Values:', Object.values(bookingsData));
+                console.log('5. Revenue Data Keys:', Object.keys(monthlyRevenueData));
+                console.log('6. Revenue Data Values:', Object.values(monthlyRevenueData));
+                console.groupEnd();
+
+                // Update error elements with data status
+                const bookingsErrorEl = document.getElementById('bookingsChartError');
+                const revenueErrorEl = document.getElementById('revenueChartError');
+
+                if (Object.keys(bookingsData).length === 0) {
+                    bookingsErrorEl.classList.remove('d-none');
+                    bookingsErrorEl.textContent = 'No booking data available';
+                }
+
+                if (Object.keys(monthlyRevenueData).length === 0) {
+                    revenueErrorEl.classList.remove('d-none');
+                    revenueErrorEl.textContent = 'No revenue data available';
+                }
+
+                if (bookingsData && Object.keys(bookingsData).length > 0) {
+                    // Create bookings chart
+                    const bookingsChartEl = document.getElementById('bookingsChart');
+                    const bookingsErrorEl = document.getElementById('bookingsChartError');
+                    
+                    if (!bookingsChartEl) {
+                        console.error('Could not find bookings chart canvas element');
+                        return;
+                    }
+
+                    new Chart(bookingsChartEl.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(bookingsData),
+                            datasets: [{
+                                label: 'Number of Bookings',
+                                data: Object.values(bookingsData),
+                                backgroundColor: 'rgba(107, 141, 214, 0.8)',
+                                borderColor: 'rgba(107, 141, 214, 1)',
+                                borderWidth: 1
+                            }]
                         },
-                        title: {
-                            display: true,
-                            text: 'Monthly Revenue Distribution',
-                            font: {
-                                size: 16
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value;
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Tour Bookings Comparison'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
                                 }
                             }
                         }
-                    }
+                    });
+                } else {
+                    console.warn('No booking data available');
                 }
-            });
+
+                if (monthlyRevenueData && Object.keys(monthlyRevenueData).length > 0) {
+                    // Create revenue chart
+                    const revenueChartEl = document.getElementById('revenueChart');
+                    const revenueErrorEl = document.getElementById('revenueChartError');
+                    
+                    if (!revenueChartEl) {
+                        console.error('Could not find revenue chart canvas element');
+                        return;
+                    }
+
+                    new Chart(revenueChartEl.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(monthlyRevenueData),
+                            datasets: [{
+                                label: 'Revenue',
+                                data: Object.values(monthlyRevenueData),
+                                backgroundColor: 'rgba(69, 182, 73, 0.8)',
+                                borderColor: 'rgba(69, 182, 73, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Monthly Revenue Distribution'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    console.warn('No revenue data available');
+                }
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+                const errors = document.querySelectorAll('#bookingsChartError, #revenueChartError');
+                errors.forEach(el => {
+                    el.classList.remove('d-none');
+                    el.textContent = 'Error loading chart: ' + error.message;
+                });
+                
+                // Show debug data automatically when error occurs
+                document.getElementById('debug').classList.remove('d-none');
+            }
         });
     </script>
 </body>
