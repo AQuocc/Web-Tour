@@ -45,8 +45,9 @@ public class BookingService {
         booking.setTour(tour);
         booking.setNumberOfParticipants(numberOfParticipants);
         // Calculate price with discount
-        BigDecimal priceAfterDiscount = tour.getDiscount() > 0
-            ? tour.getPrice().multiply(BigDecimal.valueOf(100 - tour.getDiscount())).divide(BigDecimal.valueOf(100))
+        Integer discount = tour.getDiscount();
+        BigDecimal priceAfterDiscount = (discount != null && discount > 0)
+            ? tour.getPrice().multiply(BigDecimal.valueOf(100 - discount)).divide(BigDecimal.valueOf(100))
             : tour.getPrice();
         booking.setTotalPrice(priceAfterDiscount.multiply(BigDecimal.valueOf(numberOfParticipants)));
         booking.setBookingDate(LocalDateTime.now());
