@@ -13,6 +13,7 @@ A Java Spring Boot web application for managing travel tour bookings. The applic
 - Manage personal bookings
 - View booking history
 - Rating tours
+- Online payment
 
 ### Admin Features
 - Tour management (Create, Read, Update, Delete)
@@ -112,26 +113,22 @@ The application implements role-based access control:
 - Profile management
 - Booking history
 
+### Payment Integration
+- Add payment gateway integration
+- Support multiple payment methods
+
 ## Future Enhancements
 
-1. Payment Integration
-   - Add payment gateway integration
-   - Support multiple payment methods
-
-2. Review System
+1. Review System
    - Allow users to rate and review tours
    - Display average ratings
 
-3. Advanced Search
-   - Add more search filters
-   - Implement sorting options
-
-4. Email Notifications
+2. Email Notifications
    - Booking confirmations
    - Tour updates
    - Reminder emails
 
-5. Report Generation
+3. Report Generation
    - Booking reports
    - Revenue reports
    - Popular tours analytics
