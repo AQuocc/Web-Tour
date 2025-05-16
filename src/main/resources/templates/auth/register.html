@@ -43,7 +43,8 @@
                             <!-- Phone Number -->
                             <div class="mb-3">
                                 <label for="phoneNumber" class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" id="phoneNumber" th:field="*{phoneNumber}">
+                                <input type="tel" class="form-control" id="phoneNumber" th:field="*{phoneNumber}" required pattern="^\d{10}$">
+                                <small class="form-text text-muted">Phone number consists of 10 digits.</small>
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}">
                                     Please enter a valid phone number.
                                 </div>

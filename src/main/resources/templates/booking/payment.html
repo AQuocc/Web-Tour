@@ -94,15 +94,16 @@
 
                         <!-- Actions -->
                         <div class="payment-actions text-center">
+                            <a th:href="@{/bookings/{id}(id=${booking.id})}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Booking Details
+                            </a>
                             <form th:action="@{/bookings/{id}/confirm-payment(id=${booking.id})}" method="post" style="display: inline-block;">
                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
                                 <button type="submit" class="btn btn-success">
                                     <i class="fas fa-check"></i> I've Completed the Payment
                                 </button>
                             </form>
-                            <a th:href="@{/bookings/{id}(id=${booking.id})}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Back to Booking Details
-                            </a>
+                            
                         </div>
                     </div>
                 </div>

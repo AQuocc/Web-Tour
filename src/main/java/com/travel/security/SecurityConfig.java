@@ -17,6 +17,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf
+                // Enable CSRF protection by default
+                .ignoringRequestMatchers("/api/**") // Only disable for API endpoints
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/",
@@ -25,6 +29,7 @@ public class SecurityConfig {
                     "/login",
                     "/about",
                     "/contact",
+                    "/contact/send",
                     "/tours",
                     "/tours/{id}",
                     "/css/**",
