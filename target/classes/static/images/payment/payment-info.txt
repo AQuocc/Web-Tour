@@ -1,0 +1,7 @@
+This directory contains payment QR codes and related images for different payment methods.
+
+Required images:
+- qr-momo.png
+- qr-zalopay.png
+- qr-vnpay.png
+- bank-info.png

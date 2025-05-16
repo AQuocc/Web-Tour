@@ -2,13 +2,17 @@ C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\security\CustomUser
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\controller\AuthController.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\repository\UserRepository.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\config\DataInitializer.java
+C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\service\PaymentService.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\controller\ContactController.java
+C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\config\MailConfig.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\controller\AdminController.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\service\StatisticsService.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\repository\BookingRepository.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\service\BookingService.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\repository\TourRepository.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\service\TourService.java
+C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\model\PaymentMethod.java
+C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\model\PaymentStatus.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\model\User.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\security\SecurityConfig.java
 C:\Users\Dell\Desktop\Web-Tour-main\src\main\java\com\travel\model\Tour.java

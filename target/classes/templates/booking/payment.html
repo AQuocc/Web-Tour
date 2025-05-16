@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Payment Details</title>
+    <link rel="stylesheet" th:href="@{/css/payment.css}">
+</head>
+<body>
+    <div layout:fragment="content" class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0">Payment Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Booking Summary -->
+                        <div class="mb-4">
+                            <h5>Booking Summary</h5>
+                            <div class="info-group">
+                                <p><strong>Tour:</strong> <span th:text="${booking.tour.name}">Tour Name</span></p>
+                                <p><strong>Total Amount:</strong> <span class="text-success" th:text="${'$' + booking.totalPrice}">$0.00</span></p>
+                                <p><strong>Payment Method:</strong> <span th:text="${booking.paymentMethod}">Payment Method</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Payment Details -->
+                        <div class="mb-4">
+                            <h5>Payment Details</h5>
+                            <div class="info-group">
+                                <div th:if="${booking.paymentMethod.name() == 'BANK_TRANSFER'}">
+                                    <p><strong>Bank Account:</strong> 1018177425</p>
+                                    <p><strong>Account Name:</strong> Travel Tour Company</p>
+                                    <p><strong>Bank Name:</strong> VietcomBank</p>
+                                    <p><strong>Reference:</strong> <span th:text="${'TOUR-' + booking.id}">TOUR-ID</span></p>
+                                    <div class="bank-info mt-3 text-center">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            Please use the banking information above to complete your transfer
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div th:if="${booking.paymentMethod.name() == 'MOMO'}" class="text-center">
+                                    <div class="qr-placeholder">
+                                        <div class="qr-message">
+                                            <i class="fas fa-qrcode fa-3x mb-3"></i>
+                                            <p>Scan with MoMo app to pay</p>
+                                            <p class="text-muted">Amount: <span th:text="${'$' + booking.totalPrice}">$0.00</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- <div th:if="${booking.paymentMethod.name() == 'ZALOPAY'}" class="text-center">
+                                    <div class="qr-placeholder">
+                                        <div class="qr-message">
+                                            <i class="fas fa-qrcode fa-3x mb-3"></i>
+                                            <p>Scan with ZaloPay app to pay</p>
+                                            <p class="text-muted">Amount: <span th:text="${'$' + booking.totalPrice}">$0.00</span></p>
+                                        </div>
+                                    </div>
+                                </div> -->
+                                
+                                <!-- <div th:if="${booking.paymentMethod.name() == 'VNPAY'}" class="text-center">
+                                    <div class="qr-placeholder">
+                                        <div class="qr-message">
+                                            <i class="fas fa-qrcode fa-3x mb-3"></i>
+                                            <p>Scan with VNPay app to pay</p>
+                                            <p class="text-muted">Amount: <span th:text="${'$' + booking.totalPrice}">$0.00</span></p>
+                                        </div>
+                                    </div>
+                                </div> -->
+                            </div>
+                        </div>
+
+                        <!-- Important Notes -->
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">Important Notes:</h6>
+                            <ul class="mb-0">
+                                <li>Please complete your payment within 24 hours</li>
+                                <li>Include your booking reference (<strong th:text="${'TOUR-' + booking.id}">TOUR-ID</strong>) in the payment description</li>
+                                <li>After payment completion, click the button below to confirm</li>
+                            </ul>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="text-center mt-4">
+                            <form th:action="@{/bookings/{id}/confirm-payment(id=${booking.id})}" method="post" style="display: inline-block;">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check"></i> I've Completed the Payment
+                                </button>
+                            </form>
+                            <a th:href="@{/bookings/{id}(id=${booking.id})}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Booking Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .qr-placeholder {
+                width: 300px;
+                height: 300px;
+                margin: 0 auto;
+                border: 2px solid #dee2e6;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #f8f9fa;
+            }
+            .qr-message {
+                text-align: center;
+                color: #6c757d;
+            }
+            .qr-message i {
+                color: #495057;
+            }
+            .bank-info {
+                max-width: 400px;
+                margin: 0 auto;
+            }
+            .info-group {
+                background-color: #f8f9fa;
+                padding: 1.5rem;
+                border-radius: 8px;
+                margin-bottom: 1rem;
+            }
+            .info-group p {
+                margin-bottom: 0.5rem;
+            }
+            .info-group p:last-child {
+                margin-bottom: 0;
+            }
+        </style>
+    </div>
+</body>
+</html>

@@ -5,6 +5,9 @@ import com.travel.model.User;
 import com.travel.service.BookingService;
 import com.travel.service.TourService;
 import com.travel.service.UserService;
+import com.travel.service.PaymentService;
+import com.travel.model.PaymentMethod;
+import com.travel.model.PaymentStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -15,10 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collections;
-import org.springframework.http.ResponseEntity;
 
 @Controller
 @RequestMapping("/bookings")
@@ -32,6 +31,9 @@ public class BookingController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PaymentService paymentService;
 
     @GetMapping("/create/{tourId}")
     public String showBookingForm(@PathVariable Long tourId, Model model, Authentication authentication) {
@@ -66,34 +68,29 @@ public class BookingController {
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/{id}")
     public String bookingDetails(@PathVariable Long id,
-                                Authentication authentication,
-                                Model model,
-                                RedirectAttributes redirectAttributes) {
+                               Authentication authentication,
+                               Model model,
+                               RedirectAttributes redirectAttributes) {
         boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
         
         try {
-            // Get and validate booking
             Booking booking = bookingService.getBookingById(id);
             if (booking == null) {
                 throw new RuntimeException("Booking not found");
             }
             
-            // Get and validate user
             User user = userService.findByUsername(authentication.getName());
             if (user == null) {
                 throw new RuntimeException("User not found");
             }
 
-            // Check access permission
             if (!isAdmin && !bookingService.isBookingBelongsToUser(id, user)) {
                 return "error/403";
             }
 
-            // Add all necessary data to model
             model.addAttribute("booking", booking);
             model.addAttribute("user", user);
             model.addAttribute("isAdmin", isAdmin);
-            model.addAttribute("availableStatuses", List.of("PENDING", "CONFIRMED", "CANCELLED"));
             
             return "booking/details";
             
@@ -114,8 +111,8 @@ public class BookingController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/{id}/cancel")
     public String cancelBooking(@PathVariable Long id,
-                               Authentication authentication,
-                               RedirectAttributes redirectAttributes) {
+                              Authentication authentication,
+                              RedirectAttributes redirectAttributes) {
         try {
             User user = userService.findByUsername(authentication.getName());
             if (!bookingService.isBookingBelongsToUser(id, user)) {
@@ -130,10 +127,80 @@ public class BookingController {
         return "redirect:/bookings/my-bookings";
     }
 
-    // Admin Operations
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/{id}/payment")
+    public String initiatePayment(@PathVariable Long id,
+                               @RequestParam PaymentMethod paymentMethod,
+                               Authentication authentication,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            User user = userService.findByUsername(authentication.getName());
+            if (!bookingService.isBookingBelongsToUser(id, user)) {
+                return "error/403";
+            }
+
+            Booking booking = paymentService.initiatePayment(id, paymentMethod);
+            return "redirect:/bookings/" + id + "/payment";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Payment initiation failed: " + e.getMessage());
+            return "redirect:/bookings/" + id;
+        }
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/{id}/payment")
+    public String showPaymentPage(@PathVariable Long id,
+                                Authentication authentication,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            User user = userService.findByUsername(authentication.getName());
+            if (!bookingService.isBookingBelongsToUser(id, user)) {
+                return "error/403";
+            }
+
+            Booking booking = bookingService.getBookingById(id);
+            if (booking.getPaymentStatus() != PaymentStatus.PENDING) {
+                redirectAttributes.addFlashAttribute("error", "Invalid payment status");
+                return "redirect:/bookings/" + id;
+            }
+
+            model.addAttribute("booking", booking);
+            return "booking/payment";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/bookings/" + id;
+        }
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/{id}/confirm-payment")
+    public String confirmPayment(@PathVariable Long id,
+                               Authentication authentication,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            User user = userService.findByUsername(authentication.getName());
+            if (!bookingService.isBookingBelongsToUser(id, user)) {
+                return "error/403";
+            }
+
+            Booking booking = paymentService.processPayment(id);
+            redirectAttributes.addFlashAttribute("success", "Payment confirmation received. Please wait for verification.");
+            return "redirect:/bookings/" + id;
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Payment confirmation failed: " + e.getMessage());
+            return "redirect:/bookings/" + id + "/payment";
+        }
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/all")
-    public String allBookings(@RequestParam(required = false) String status, Model model, RedirectAttributes redirectAttributes) {
+    public String allBookings(@RequestParam(required = false) String status,
+                            Model model,
+                            RedirectAttributes redirectAttributes) {
         try {
             List<Booking> bookings;
             if (status != null && !status.isEmpty()) {
@@ -158,44 +225,6 @@ public class BookingController {
     public String pendingBookings(Model model) {
         model.addAttribute("bookings", bookingService.getPendingBookings());
         return "admin/booking/pending";
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/admin/{id}/status")
-    public String updateBookingStatus(@PathVariable Long id,
-                                      @RequestParam String status,
-                                      RedirectAttributes redirectAttributes) {
-        try {
-            // Validate status first
-            if (status == null || status.trim().isEmpty()) {
-                throw new IllegalArgumentException("Status cannot be empty");
-            }
-            
-            String upperStatus = status.trim().toUpperCase();
-            if (!isValidStatus(upperStatus)) {
-                throw new IllegalArgumentException("Invalid status value: " + status);
-            }
-
-            // Get booking and validate
-            Booking booking = bookingService.getBookingById(id);
-            if (booking == null) {
-                throw new IllegalArgumentException("Booking not found");
-            }
-            
-            // Update status
-            bookingService.updateBookingStatus(id, upperStatus);
-            
-            // Set success message
-            String statusText = upperStatus.substring(0, 1) + upperStatus.substring(1).toLowerCase();
-            redirectAttributes.addFlashAttribute("success",
-                String.format("Booking #%d has been %s successfully", id, statusText));
-
-            return "redirect:/bookings/" + id;
-
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/bookings/admin/all";
-        }
     }
 
     private boolean isValidStatus(String status) {

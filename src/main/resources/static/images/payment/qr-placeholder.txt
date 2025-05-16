@@ -1,0 +1,30 @@
+Required QR Code Images:
+
+1. qr-momo.png:
+- Size: 300x300px
+- Contains: MoMo QR code for payment
+- Sample MoMo account: 0123456789
+- Amount: Dynamic based on booking
+
+2. qr-zalopay.png:
+- Size: 300x300px
+- Contains: ZaloPay QR code for payment
+- Sample ZaloPay ID: travel.tour.company
+- Amount: Dynamic based on booking
+
+3. qr-vnpay.png:
+- Size: 300x300px
+- Contains: VNPay QR code for payment
+- Sample Merchant ID: TRAVELTOUR001
+- Amount: Dynamic based on booking
+
+4. bank-info.png:
+- Size: 400x200px
+- Contains: Bank account details
+- Account Name: Travel Tour Company
+- Account Number: 123456789
+- Bank Name: VietComBank
+- Branch: Main Branch
+- SWIFT Code: BFTVVNVX
+
+Note: Replace these placeholder images with actual QR codes and bank information when deploying to production.

@@ -1,8 +1,10 @@
 com\travel\model\User.class
 com\travel\TravelTourApplication.class
+com\travel\model\PaymentMethod.class
 com\travel\service\UserService.class
 com\travel\controller\ContactController.class
 com\travel\controller\TourController.class
+com\travel\service\PaymentService.class
 com\travel\repository\UserRepository.class
 com\travel\model\Tour.class
 com\travel\service\BookingService.class
@@ -10,10 +12,12 @@ com\travel\security\CustomUserDetailsService.class
 com\travel\model\Booking.class
 com\travel\repository\TourRepository.class
 com\travel\controller\BookingController.class
+com\travel\model\PaymentStatus.class
 com\travel\repository\BookingRepository.class
 com\travel\service\TourService.class
 com\travel\security\SecurityConfig.class
 com\travel\controller\HomeController.class
+com\travel\config\MailConfig.class
 com\travel\service\StatisticsService.class
 com\travel\controller\AuthController.class
 com\travel\controller\AdminController.class

@@ -3,6 +3,7 @@ package com.travel.service;
 import com.travel.model.Booking;
 import com.travel.model.Tour;
 import com.travel.model.User;
+import com.travel.model.PaymentStatus;
 import com.travel.repository.BookingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,7 @@ public class BookingService {
         booking.setTotalPrice(priceAfterDiscount.multiply(BigDecimal.valueOf(numberOfParticipants)));
         booking.setBookingDate(LocalDateTime.now());
         booking.setStatus("PENDING");
+        booking.setPaymentStatus(PaymentStatus.PENDING);
 
         return bookingRepository.save(booking);
     }
@@ -111,5 +113,13 @@ public class BookingService {
             status.equalsIgnoreCase("CONFIRMED") ||
             status.equalsIgnoreCase("CANCELLED")
         );
+    }
+
+    @Transactional
+    public Booking updateBooking(Booking booking) {
+        if (booking == null) {
+            throw new RuntimeException("Booking cannot be null");
+        }
+        return bookingRepository.save(booking);
     }
 }

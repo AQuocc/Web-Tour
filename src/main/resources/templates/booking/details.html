@@ -92,6 +92,54 @@
                     </div>
                 </div>
 
+                <!-- Payment Information -->
+                <div id="payment" class="row mb-4" sec:authorize="hasRole('USER')" th:if="${booking.status == 'PENDING'}">
+                    <div class="col-12">
+                        <h5>Payment Information</h5>
+                        <div class="info-group">
+                            <p><strong>Payment Status:</strong>
+                                <span th:class="${'badge ' +
+                                    (booking.paymentStatus == 'PENDING' ? 'bg-warning' :
+                                    (booking.paymentStatus == 'COMPLETED' ? 'bg-success' :
+                                    (booking.paymentStatus == 'FAILED' ? 'bg-danger' : 'bg-info')))}"
+                                    th:text="${booking.paymentStatus}">
+                                    Payment Status
+                                </span>
+                            </p>
+                            <div th:if="${booking.paymentMethod}">
+                                <p><strong>Payment Method:</strong> <span th:text="${booking.paymentMethod}">Payment Method</span></p>
+                            </div>
+                            <div th:if="${booking.transactionId}">
+                                <p><strong>Transaction ID:</strong> <span th:text="${booking.transactionId}">Transaction ID</span></p>
+                                <p><strong>Payment Date:</strong>
+                                    <span th:text="${#temporals.format(booking.paymentDate, 'dd MMM yyyy HH:mm')}">Payment Date</span>
+                                </p>
+                            </div>
+
+                            <!-- Payment Form -->
+                            <div th:if="${booking.paymentStatus.toString() == 'PENDING'}" class="mt-3">
+                                <form th:action="@{/bookings/{id}/payment(id=${booking.id})}" method="post">
+                                    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                                    <div class="mb-3">
+                                        <label for="paymentMethod" class="form-label">Select Payment Method:</label>
+                                        <select name="paymentMethod" id="paymentMethod" class="form-select" required>
+                                            <option value="">Choose payment method...</option>
+                            
+                                            <option value="BANK_TRANSFER">Bank Transfer</option>
+                                            
+                                            <option value="MOMO">MoMo</option>
+                                            
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-credit-card"></i> Proceed to Payment
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Actions -->
                 <div class="row">
                     <div class="col-12">
@@ -161,6 +209,13 @@
         }
         .btn-group .btn {
             margin-right: 0.5rem;
+        }
+        #payment:target .info-group {
+            animation: highlight 2s ease-out;
+        }
+        @keyframes highlight {
+            0% { background-color: #fff3cd; }
+            100% { background-color: #f8f9fa; }
         }
     </style>
 </body>
